@@ -2,9 +2,9 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import networkx as nx
 import math
+from astar import astar_algo
 
 from graph_loader import load_graph
-from astar import heuristic
 
 app = Flask(__name__)
 CORS(app)
@@ -73,13 +73,7 @@ def get_route():
         nearest_hospital = start
 
     # A* path
-    path = nx.astar_path(
-        temp_graph,
-        start,
-        end,
-        heuristic=lambda a, b: heuristic(temp_graph, a, b),
-        weight='weight'
-    )
+    path = astar_algo(temp_graph, start, end)
 
     coords = [temp_graph.nodes[node]['pos'] for node in path]
 
