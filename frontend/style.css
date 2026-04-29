@@ -1,11 +1,18 @@
-#map {
-  height: 100vh;
-  width: 100%;
-}
-
 body {
   margin: 0;
   padding: 0;
+  display: flex;
+}
+
+#map {
+  width: 70%;
+  height: 100vh;
+}
+
+#graph {
+  width: 30%;
+  height: 100vh;
+  border-left: 2px solid black;
 }
 
 #panel {

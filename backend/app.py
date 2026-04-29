@@ -75,6 +75,8 @@ def get_route():
     # A* path
     path = astar_algo(temp_graph, start, end)
 
+    node_path = path 
+
     coords = [temp_graph.nodes[node]['pos'] for node in path]
 
     # -----------------------------
@@ -91,9 +93,19 @@ def get_route():
 
     return jsonify({
         "path": coords,
+        "node_path": node_path, 
         "hospital": nearest_hospital,
         "distance": round(total_distance_km, 2),
-        "time": round(time_minutes, 2)
+        "time": round(time_minutes, 2),
+
+        "graph": {
+        "nodes": [
+            {"data": {"id": node}} for node in G.nodes
+        ],
+        "edges": [
+            {"data": {"source": u, "target": v}} for u, v in G.edges
+        ]
+        }
     })
 
 # -----------------------------
