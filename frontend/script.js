@@ -1,15 +1,16 @@
 console.log("JS loaded");
 
-// Initialize map
+// -----------------------------
+// 🗺️ Initialize Map
+// -----------------------------
 const map = L.map('map').setView([30.2686, 78.0108], 16);
 
-// Tiles
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
   maxZoom: 19,
 }).addTo(map);
 
 // -----------------------------
-// Icons
+// 🎨 Icons
 // -----------------------------
 const hospitalIcon = new L.Icon({
   iconUrl: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
@@ -22,7 +23,7 @@ const selectedHospitalIcon = new L.Icon({
 });
 
 // -----------------------------
-// Hospitals
+// 🏥 Hospitals
 // -----------------------------
 const hospitals = [
   { name: "Hospital1", coords: [30.272866215169035, 78.00777104418394] },
@@ -40,22 +41,25 @@ hospitals.forEach(h => {
 });
 
 // -----------------------------
-// Dynamic Routing
+// 🚑 Routing Variables
 // -----------------------------
 let routeLayer = null;
 let accidentMarker = null;
 
-// Click event
+// -----------------------------
+// 📍 Click Event
+// -----------------------------
 map.on("click", function(e) {
+
   const lat = e.latlng.lat;
   const lng = e.latlng.lng;
 
   console.log("Accident:", lat, lng);
 
-  // Remove old marker
+  // Remove old accident marker
   if (accidentMarker) map.removeLayer(accidentMarker);
 
-  // Red circle accident
+  // Add new accident marker
   accidentMarker = L.circleMarker([lat, lng], {
     radius: 10,
     color: 'red',
@@ -65,17 +69,71 @@ map.on("click", function(e) {
     .bindPopup("🚨 Accident Location")
     .openPopup();
 
-  // Fetch route
+  // -----------------------------
+  // 🌐 Fetch backend
+  // -----------------------------
   fetch(`http://127.0.0.1:5000/route?lat=${lat}&lng=${lng}`)
     .then(res => res.json())
     .then(data => {
 
+      console.log("Response:", data);
+
+      // -----------------------------
+      // 🧠 GRAPH VISUALIZATION
+      // -----------------------------
+      document.getElementById('graph').innerHTML = "";
+
+      const cy = cytoscape({
+        container: document.getElementById('graph'),
+
+        elements: [
+          ...data.graph.nodes,
+          ...data.graph.edges
+        ],
+
+        style: [
+          {
+            selector: 'node',
+            style: {
+              'background-color': '#666',
+              'label': 'data(id)',
+              'color': '#000',
+              'text-valign': 'center',
+              'text-halign': 'center'
+            }
+          },
+          {
+            selector: 'edge',
+            style: {
+              'width': 2,
+              'line-color': '#ccc'
+            }
+          }
+        ],
+
+        layout: {
+          name: 'cose'   // better layout
+        }
+      });
+
+      // 🔥 SAFE A* PATH HIGHLIGHT
+      if (data.node_path) {
+        cy.nodes().forEach(n => {
+          if (data.node_path.includes(n.id())) {
+            n.style('background-color', 'red');
+          }
+        });
+      } else {
+        console.error("node_path missing from backend!");
+      }
+
+      // -----------------------------
+      // 🗺️ DRAW ROUTE ON MAP
+      // -----------------------------
       const latlngs = data.path.map(coord => [coord[0], coord[1]]);
 
-      // Remove old route
       if (routeLayer) map.removeLayer(routeLayer);
 
-      // Draw route
       routeLayer = L.polyline(latlngs, {
         color: 'red',
         weight: 5
@@ -83,7 +141,9 @@ map.on("click", function(e) {
 
       map.fitBounds(routeLayer.getBounds());
 
-      // Highlight hospital
+      // -----------------------------
+      // 🏥 Highlight Selected Hospital
+      // -----------------------------
       hospitalMarkers.forEach(h => {
         if (h.name === data.hospital) {
           h.marker.setIcon(selectedHospitalIcon);
@@ -92,7 +152,9 @@ map.on("click", function(e) {
         }
       });
 
-      // Update UI
+      // -----------------------------
+      // 📊 Update Info Panel
+      // -----------------------------
       document.getElementById("info").innerHTML =
         `🚑 Hospital: ${data.hospital}<br>
          📏 Distance: ${data.distance} km<br>
@@ -100,17 +162,20 @@ map.on("click", function(e) {
     })
     .catch(err => {
       console.error(err);
-      alert("Backend not running!");
+      alert("Backend not running or error occurred!");
     });
 });
 
 // -----------------------------
-// Reset function
+// 🔄 Reset Function
 // -----------------------------
 function resetMap() {
+
   if (routeLayer) map.removeLayer(routeLayer);
   if (accidentMarker) map.removeLayer(accidentMarker);
 
   document.getElementById("info").innerHTML =
     "Click on map to report accident";
+
+  document.getElementById('graph').innerHTML = "";
 }

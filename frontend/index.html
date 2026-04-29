@@ -4,23 +4,28 @@
   <title>Emergency System</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
   <link rel="stylesheet" href="style.css">
+</head>
 
-  <div id="panel">
+<body>
+
+<!-- ✅ PANEL MUST BE HERE -->
+<div id="panel">
   <h3>🚑 Emergency System</h3>
 
   <button onclick="resetMap()">Reset</button>
 
   <p id="info">Click on map to report accident</p>
 </div>
-</head>
-
-<body>
 
 <div id="map"></div>
 
+<!-- Graph container -->
+<div id="graph" style="height:400px; margin-top:10px;"></div>
+
+<!-- Scripts -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
 
 <script src="script.js"></script>
 
